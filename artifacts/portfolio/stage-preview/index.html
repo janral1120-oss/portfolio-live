@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <script>document.documentElement.classList.add("loading-scene"); if (window.parent !== window && new URLSearchParams(location.search).has("lamp")) document.documentElement.classList.add("lamp-scene")</script>
+  <title>纸艺剧场 × 文化城市 · 王静茹</title>
+  <link rel="stylesheet" href="./stage.css">
+  <link rel="preload" as="image" href="./city.jpg">
+</head>
+<body>
+<main>
+  <header><span class="signature">王静茹 <i>Jingru Wang</i></span><span>SELECTED WORKS · 2026</span></header>
+  <article aria-label="纸艺剧场 × 文化城市">
+    <div class="frame">
+      <div class="scenery">
+      <svg class="stage" viewBox="0 0 1672 941" role="img" aria-labelledby="scene-title">
+        <title id="scene-title">酒红幕布徐徐打开，月亮下的玻璃展厅、街边座席与弧形步道连成开放的城市空间。</title>
+        <defs>
+          <image id="art" href="./city.jpg" width="1672" height="941"/>
+          <radialGradient id="shade"><stop stop-color="#160e0c" stop-opacity=".76"/><stop offset=".42" stop-color="#201312" stop-opacity=".52"/><stop offset="1" stop-color="#201312" stop-opacity="0"/></radialGradient>
+        </defs>
+        <use href="#art"/>
+        <g fill="url(#shade)">
+          <ellipse class="cue house" cx="416" cy="704" rx="300" ry="175"/>
+          <g class="cue wings"><ellipse cx="765" cy="751" rx="225" ry="106"/><ellipse cx="1410" cy="721" rx="266" ry="145"/></g>
+          <ellipse class="cue walk" cx="1010" cy="802" rx="640" ry="115"/>
+          <g class="cue practicals"><ellipse cx="1335" cy="578" rx="86" ry="48"/><ellipse cx="1222" cy="749" rx="105" ry="55"/></g>
+        </g>
+        <path class="path-light" pathLength="100" d="M92 895 C370 815 722 849 1050 812 Q1330 776 1091 776 Q976 768 859 772" fill="none" stroke="#ffdeaa" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <canvas class="curtain" aria-hidden="true"></canvas>
+      </div>
+      <div class="caption"><h1>让文化发生，让城市生长。</h1><p lang="en">Where Culture Flourishes, Cities Thrive.</p></div>
+    </div>
+    <footer>
+      <div class="controls"><button id="replay"><span aria-hidden="true">↺</span>重新播放</button><a href="/" id="skip">跳过动画</a><a href="/" id="enter">进入作品集 <span aria-hidden="true">→</span></a></div>
+    </footer>
+  </article>
+</main>
+<script type="module" src="./stage.js"></script>
+</body>
+</html>

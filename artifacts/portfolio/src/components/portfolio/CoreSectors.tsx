@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+
+import { motion } from 'framer-motion';
 import {
   Music,
   MapPin,
@@ -9,14 +9,15 @@ import {
   Network,
   type LucideIcon,
 } from 'lucide-react';
-import { coreSectors, type CoreSector } from '@/lib/portfolioData';
+import coreSectors from '@/lib/p0Capabilities.json';
+type CoreSector = typeof coreSectors[number];
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Music, MapPin, TrendingUp, Sparkles, Eye, Network,
 };
 
 function SectorCard({ sector, index }: { sector: CoreSector; index: number }) {
-  const [expanded, setExpanded] = useState(false);
+
   const Icon = ICON_MAP[sector.icon] ?? Sparkles;
 
   return (
@@ -29,7 +30,7 @@ function SectorCard({ sector, index }: { sector: CoreSector; index: number }) {
       <div
         className={[
           'h-full rounded-2xl border bg-card/70 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:shadow-[0_6px_28px_rgba(230,161,87,0.16)]',
-          expanded ? 'border-primary/60' : 'border-border/70 hover:border-primary/40',
+          'border-border/70 hover:border-primary/40',
         ].join(' ')}
       >
         {/* Card top — always visible */}
@@ -44,58 +45,16 @@ function SectorCard({ sector, index }: { sector: CoreSector; index: number }) {
               <Icon className="w-4 h-4 text-primary" strokeWidth={1.6} />
             </div>
             <div className="flex-1 min-w-0 pr-6">
-              <h3 className="font-serif text-sm md:text-[15px] text-foreground leading-tight tracking-tight">
+              <h3 className="font-serif font-bold text-sm md:text-[15px] text-foreground leading-tight tracking-tight">
                 {sector.title}
               </h3>
-              <p className="mt-1 text-[11px] text-muted-foreground/70 leading-relaxed line-clamp-2">
+              <p className="mt-1 text-[11px] text-muted-foreground/70 leading-relaxed">
                 {sector.caption}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-xs font-bold text-primary">{sector.metric}</span>
-            <button
-              onClick={() => setExpanded(v => !v)}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono tracking-[0.18em] uppercase transition-all duration-200"
-              style={{
-                background: expanded ? 'rgba(230,161,87,0.2)' : 'rgba(230,161,87,0.08)',
-                color: expanded ? '#e6a157' : 'rgba(230,161,87,0.6)',
-                border: '1px solid',
-                borderColor: expanded ? 'rgba(230,161,87,0.5)' : 'rgba(230,161,87,0.2)',
-              }}
-            >
-              {expanded ? '收起' : '策划故事'}
-              <motion.span
-                animate={{ rotate: expanded ? 180 : 0 }}
-                transition={{ duration: 0.25 }}
-                style={{ display: 'inline-block', lineHeight: 1 }}
-              >
-                ▾
-              </motion.span>
-            </button>
-          </div>
         </div>
-
-        {/* Expandable story */}
-        <AnimatePresence initial={false}>
-          {expanded && (
-            <motion.div
-              key="story"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-              style={{ overflow: 'hidden' }}
-            >
-              <div className="px-5 pb-5 pt-1 border-t border-primary/15 bg-gradient-to-b from-primary/5 to-transparent">
-                <p className="text-[12px] text-foreground/85 leading-relaxed font-serif italic mt-3">
-                  "{sector.story}"
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </motion.div>
   );
@@ -119,24 +78,22 @@ export function CoreSectors() {
         >
           <div>
             <p className="text-[11px] tracking-[0.32em] text-primary/80 font-mono uppercase mb-3">
-              My Toolkit · 我的工具箱
+              CORE CAPABILITIES
             </p>
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground tracking-tight">
-              策划者的 <span className="text-primary">工具箱 · 六种杠杆</span>
+              四项<span className="text-primary">核心能力</span>
             </h2>
-            <p className="mt-2 text-[11px] font-mono tracking-wide text-muted-foreground/50">
-              点击卡片右下角展开策划故事
-            </p>
+
           </div>
           <div className="hidden md:block font-mono text-[11px] tracking-[0.22em] uppercase text-muted-foreground/70">
-            Six Levers · One Operator
+            01 — 04
           </div>
         </motion.div>
 
         {/* 6-card grid — always visible */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
           {coreSectors.map((sector, idx) => (
-            <SectorCard key={sector.id} sector={sector} index={idx} />
+            <SectorCard key={sector.title} sector={sector} index={idx} />
           ))}
         </div>
       </div>

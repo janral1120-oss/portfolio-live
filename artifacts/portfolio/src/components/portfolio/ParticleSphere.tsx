@@ -33,6 +33,7 @@ type P = {
   vsx: number; vsy: number;             // screen-space velocity
   color: string;
   alphaBase: number;
+  fieldRadius: number;
 };
 
 export function ParticleSphere({ className = '' }: { className?: string }) {
@@ -62,8 +63,12 @@ export function ParticleSphere({ className = '' }: { className?: string }) {
       ox, oy, oz,
       sx: 0, sy: 0, vsx: 0, vsy: 0,
       color:     PALETTE[Math.floor(rand01() * PALETTE.length)],
+      fieldRadius: 0.6 + Math.pow(rand01(), 1.4) * 0.92,
       alphaBase: 0.35 + rand01() * 0.52,
     }));
+
+    const mobileViewport = window.matchMedia("(max-width: 767px)");
+    const mobileParticles = particles.filter((_, i) => i % 2 === 0);
 
     // ── State ─────────────────────────────────────────────────────────────────
     let rotY  = rand01() * Math.PI * 2;
@@ -86,7 +91,9 @@ export function ParticleSphere({ className = '' }: { className?: string }) {
 
       // Sphere display parameters (responsive)
       const R  = Math.min(cw, ch) * 0.38;  // sphere radius
-      const cx = cw  * 0.30;               // center-x (sits behind avatar col)
+      const mobile = mobileViewport.matches;
+      const active = mobile ? mobileParticles : particles;
+      const cx = cw * (mobile ? 0.5 : 0.30);               // center-x (sits behind avatar col)
       const cy = ch  * 0.50;               // center-y
       const fv = 2.3;                       // perspective strength
 
@@ -95,9 +102,9 @@ export function ParticleSphere({ className = '' }: { className?: string }) {
 
       // ── 1. Project all particles ───────────────────────────────────────────
       type Item = { px: number; py: number; pz: number; p: P };
-      const items: Item[] = new Array(N);
-      for (let i = 0; i < N; i++) {
-        const { ox, oy, oz, sx, sy } = particles[i];
+      const items: Item[] = new Array(active.length);
+      for (let i = 0; i < active.length; i++) {
+        const { ox, oy, oz, sx, sy } = active[i];
         // Rotate Y
         const x1 = ox * cosY + oz * sinY;
         const z1 = -ox * sinY + oz * cosY;
@@ -105,12 +112,13 @@ export function ParticleSphere({ className = '' }: { className?: string }) {
         const y2 =  oy * cosX - z1 * sinX;
         const z2 =  oy * sinX + z1 * cosX;
         // Perspective project + screen-space offset
-        const sc = fv / (fv + z2);
+        const radius = mobile ? active[i].fieldRadius : 1;
+        const sc = radius * fv / (fv + z2);
         items[i] = {
           px: cx + x1 * R * sc + sx,
           py: cy + y2 * R * sc + sy,
           pz: z2,
-          p: particles[i],
+          p: active[i],
         };
       }
 
@@ -139,7 +147,7 @@ export function ParticleSphere({ className = '' }: { className?: string }) {
       ctx.clearRect(0, 0, cw, ch);
       for (const { px, py, pz, p } of items) {
         const depth = (pz + 1) * 0.5;               // 0 = back, 1 = front
-        const size  = 0.65 + depth * 1.6;
+        const size = mobile ? 0.45 + depth * 1.12 : 0.65 + depth * 1.6;
         const alpha = p.alphaBase * (0.22 + depth * 0.78);
         ctx.globalAlpha = alpha;
         ctx.fillStyle   = p.color;

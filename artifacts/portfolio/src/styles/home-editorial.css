@@ -1,0 +1,151 @@
+/* Homepage only. Project cards and detail dialogs keep their own layout. */
+:is(#hero, #sectors, #social-ops, #career, #manifesto, #contact) > .container,
+main #tools {
+  width: min(100%, 83rem);
+  max-width: 100%;
+  padding-inline: clamp(1.25rem, 5.2vw, 5rem);
+}
+
+#hero {min-height: clamp(36rem, 71svh, 45rem); padding-block: 4rem;}
+#hero .hero-layout {
+  display:grid; max-width:67rem; margin-inline:auto;
+  grid-template-columns:minmax(0,.82fr) minmax(0,1.5fr);
+  grid-template-areas:"person heading" "person expertise" "person history";
+  column-gap:clamp(3rem,6.5vw,6rem); align-items:start;
+}
+.hero-person {grid-area:person; align-self:center; display:grid; justify-items:center; gap:1.3rem;}
+.hero-identity {display:grid;justify-items:center;gap:2rem;}
+#hero .hero-portrait {width:clamp(12rem,18vw,16rem);aspect-ratio:1;}
+#hero .hero-portrait canvas {
+  inset:auto;top:50%;left:50%;transform:translate(-30%,-50%);width:185%;height:155%;mask-image:none;
+}
+.hero-identity figcaption {font:1.13rem/1.5 var(--app-font-serif);color:hsl(var(--foreground)/.9);}
+.hero-identity i {font-size:.92em;}
+#hero .hero-heading {grid-area:heading;}
+.hero-kicker {font:.65rem/1.55 monospace;letter-spacing:.13em;color:hsl(var(--primary)/.8);}
+#hero h1 {font:700 clamp(2.8rem,4.8vw,4.25rem)/1.12 var(--app-font-serif);letter-spacing:-.025em;margin-top:1rem;}
+#hero h1 span {display:block;margin-top:.65rem;font-size:.5em;font-weight:400;letter-spacing:0;color:hsl(var(--primary));}
+.hero-expertise {grid-area:expertise;font:500 clamp(1rem,1.35vw,1.19rem)/1.7 var(--app-font-serif);margin-top:1.75rem;}
+.hero-expertise span {display:inline-block;}
+.hero-separator {white-space:pre;}
+.hero-experience {grid-area:history;display:grid;gap:1.15rem;margin-top:2rem;}
+.hero-experience dt {font-size:.87rem;font-weight:700;line-height:1.6;color:hsl(var(--foreground)/.94);}
+.hero-experience dd {font-size:.98rem;line-height:1.75;color:hsl(var(--muted-foreground)/.9);margin-top:.25rem;text-wrap:pretty;}
+.hero-contacts {display:flex;align-items:center;gap:.85rem;}
+.hero-contacts :is(button,a) {display:grid;place-items:center;width:46px;height:46px;}
+
+#sectors, #social-ops, #career {padding-block: clamp(3rem, 5.2vw, 5rem);}
+#sectors .grid {gap: clamp(.75rem, 1.45vw, 1.3rem);}
+#sectors .grid .relative {padding: 1.35rem 1.25rem;}
+#sectors .grid .flex.items-start {display: grid; margin: 0; gap: .9rem;}
+#sectors .grid .min-w-0 {padding: 0;}
+#sectors h3 {font-size: 1.08rem; line-height: 1.5; text-wrap: balance;}
+#sectors h3 + p {font-size: .93rem; line-height: 1.8; margin-top: .45rem; color: hsl(var(--muted-foreground));}
+
+#social-ops h2, #career h2 {text-wrap: balance;}
+#social-ops h2 span, #career h2 span {white-space: nowrap;}
+#social-ops h2 {margin-bottom: 1.5rem;}
+#social-ops .creator-overview {padding: 1.2rem 1.6rem; gap: 2rem; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);}
+#social-ops .social-pair {gap: clamp(1rem, 2.2vw, 2rem); margin-top: 1.2rem;}
+#social-ops .social-pair article {
+  min-width: 0; display: flex; flex-direction: column;
+  padding: clamp(1rem, 1.8vw, 1.65rem);
+  border: 1px solid hsl(var(--border)); background: hsl(var(--card) / .55);
+}
+#social-ops article h3 {font-family: var(--app-font-serif); line-height: 1.35;}
+#social-ops article p {color: hsl(var(--muted-foreground)); margin-block: .5rem .85rem;}
+#social-ops .social-thumbs {gap: clamp(.45rem, .85vw, .8rem); margin-top: auto; align-items: start;}
+#social-ops .social-thumbs button {border: 1px solid hsl(var(--border)); border-radius: .4rem;}
+#social-ops .social-thumbs img {display: block; width: 100%; height: auto;}
+
+#career > .container > p {margin-bottom: 1.75rem;}
+#career .grid {gap: clamp(1.75rem, 3.8vw, 3.5rem);}
+#career article > :first-child {aspect-ratio: 2.1;}
+#career article > :nth-child(2) {padding-top: 1.4rem;}
+#career h3 {font-size: clamp(1.2rem, 1.65vw, 1.55rem); line-height: 1.45;}
+#career h4 {margin-top: .35rem; line-height: 1.6;}
+#career ul {margin-top: 1.2rem;}
+#career li {font-size: .96rem; line-height: 1.85; gap: .7rem;}
+#career li strong {color: hsl(var(--foreground) / .92); margin-bottom: .15rem;}
+#career li > span:first-child {width: .95rem; margin-top: .8rem;}
+
+main #manifesto {padding-block: clamp(4rem, 6.5vw, 6.5rem);}
+#manifesto blockquote {max-width: 44rem; margin-inline: auto; text-wrap: balance; line-height: 1.6;}
+#manifesto blockquote {display:grid;gap:clamp(.65rem,1.3vw,1.25rem)}
+#manifesto blockquote > span {font-size:clamp(1.02rem,1.7vw,1.45rem);color:#c6b5a0;font-weight:400}
+#manifesto blockquote > span:nth-child(2) {font-size:clamp(1.45rem,3.45vw,3rem);line-height:1.35;color:#fff3e1;font-weight:600}
+#manifesto blockquote > span:last-child {font-size:clamp(.98rem,1.45vw,1.25rem);color:#bca48a}
+#manifesto [aria-hidden] {font-size: clamp(3.8rem, 6vw, 6rem);}
+main #tools {padding-block: 2.3rem; color: hsl(var(--muted-foreground));}
+#tools h3 {color: hsl(var(--foreground) / .9);}
+#contact {padding-block: clamp(3rem, 5vw, 5rem);}
+#contact h2 {font-size: clamp(2rem, 4vw, 3.5rem); margin-bottom: 1rem;}
+#contact .mb-10 {margin-bottom: 1.5rem;}
+#contact .mt-16 {margin-top: 2rem; padding-top: 1.25rem;}
+@media (min-width: 768px) {
+  main #tools {display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 3rem;}
+  #tools > h2 {grid-column: 1 / -1;}
+  #tools > h3 {grid-row: 2;}
+  #tools > p {grid-row: 3;}
+}
+
+@media (max-width: 767px) {
+  :is(#hero, #sectors, #social-ops, #career, #manifesto, #contact) > .container,
+  main #tools {padding-inline: 1.5rem;}
+  main #hero {min-height:auto;padding-block:2.8rem 3.1rem;}
+  #hero .hero-layout {
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"heading" "identity" "expertise" "history" "contacts";gap:0;
+  }
+  #hero .hero-heading {padding-left:clamp(2.65rem,11vw,3rem);}
+  .hero-kicker {font-size:.61rem;letter-spacing:.055em;}
+  #hero h1 {font-size:clamp(2.4rem,10.7vw,3.15rem);margin-top:.85rem;}
+  #hero h1 span {font-size:.56em;margin-top:.45rem;}
+  .hero-person {display:contents;}
+  .hero-identity {grid-area:identity;display:flex;align-items:center;gap:1.5rem;margin-block:1.9rem 1.5rem;}
+  #hero .hero-portrait {width:clamp(100px,27vw,120px);}
+  #hero .hero-portrait canvas {
+    width:230%; height:204%; transform:translate(-50%,-50%);
+    mask-image: radial-gradient(ellipse 50% 49%, black 43%, transparent 98%),
+                linear-gradient(to right, transparent 18%, black 30% 70%, transparent 82%);
+    mask-composite: intersect;
+  }
+  #hero .hero-portrait > .blur-3xl {
+    inset:-30%; background:radial-gradient(ellipse, rgba(144,85,44,.22) 22%, transparent 72%);
+    filter:blur(5px); pointer-events:none;
+  }
+  .hero-expertise {margin:0;font-size:1.08rem;line-height:1.7;}
+  .hero-expertise span {display:block;}
+  .hero-expertise .hero-separator {display:none;}
+  .hero-experience {margin-top:2.1rem;gap:1.3rem;}
+  .hero-experience dd {line-height:1.8;text-wrap:balance;}
+  .hero-contacts {grid-area:contacts;margin-top:1.5rem;}
+  #sectors, #social-ops, #career {padding-block: 2.6rem;}
+  #sectors .container > :first-child {margin-bottom: 1.25rem;}
+  #sectors .grid {gap: .65rem;}
+  #sectors .grid .relative {padding: .9rem 1rem;}
+  #sectors .grid .flex.items-start {display: flex; gap: .7rem;}
+  #sectors h3 {font-size: 1rem; margin-right: 1.8rem; text-wrap: initial;}
+  #sectors h3 + p {margin-top: .25rem; font-size: .91rem; line-height: 1.7;}
+  #social-ops .creator-overview {grid-template-columns: 1fr; padding: 1rem; gap: .5rem;}
+  #social-ops .social-pair {gap: 1rem;}
+  #social-ops .social-pair article {padding: 1rem;}
+  /* Part of the next original image stays visible to indicate horizontal scrolling. */
+  #social-ops .social-thumbs {
+    display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 44%;
+    overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity;
+    padding-bottom: .45rem; scrollbar-width: thin; scrollbar-color: #946e48 #231b14;
+  }
+  #social-ops .social-thumbs button {scroll-snap-align: start;}
+  #career .grid {gap: 2.25rem;}
+  #career article > :first-child {aspect-ratio: 1.94;}
+  #career article > :nth-child(2) {padding-top: 1rem;}
+  #career ul {margin-top: 1rem;}
+  #career li {line-height: 1.75;}
+  #career li:not(:last-child) {margin-bottom: .8rem;}
+  main #manifesto {padding-block: 3.7rem;}
+  #manifesto blockquote {font-size: 1.25rem; padding-inline: 1.1rem;}
+  #manifesto .mt-10 {margin-top: 1.6rem;}
+  main #tools {padding-block: 1.8rem;}
+  main #contact {padding-block: 2.75rem 4.5rem;}
+}

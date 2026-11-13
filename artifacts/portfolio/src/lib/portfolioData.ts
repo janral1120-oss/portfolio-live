@@ -8,7 +8,7 @@ import wukesong4 from "@assets/五棵松发布会4_1777536906481.png";
 import wukesong5 from "@assets/五棵松发布会5_1777536906480.png";
 import wukesong6 from "@assets/五棵松发布会6_1777536906480.png";
 import careerYuelehui from "@/assets/career-yuelehui.png";
-import careerAranya from "@assets/（二）海南阿那亚商业运营有限公司北京分公司经历照片替换_1777460267810.jpg";
+import careerAranya from "@/assets/optimized/career-aranya.webp";
 import project15CitiesMap from "@/assets/map-15cities.svg";
 import projectCarmen from "@/assets/project-carmen.png";
 import projectTeaAgent from "@/assets/project-tea-agent.png";
@@ -32,7 +32,7 @@ import lulu5 from "@assets/lululune个人账号数据5_1777460744285.jpg";
 import lulu6 from "@assets/lululune个人账号数据6_1777460744285.jpg";
 import lulu7 from "@assets/lululune个人账号数据7_1777460744282.jpg";
 import lulu8 from "@assets/lululune个人账号数据8_1777460744284.jpg";
-import heroPortrait from "@assets/（一）首页-个人照片_1777460260879.jpg";
+import heroPortrait from "@/assets/optimized/portrait.webp";
 
 export type CoreSector = {
   id: string;

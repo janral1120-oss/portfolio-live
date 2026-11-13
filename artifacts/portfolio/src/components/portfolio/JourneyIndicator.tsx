@@ -2,14 +2,17 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
 const NAV_ITEMS = [
-  { id: 'hero',       num: '01', act: 'PROLOGUE',       label: '序幕' },
-  { id: 'sectors',    num: '02', act: 'THE ARCHIVE',    label: '核心赛道' },
-  { id: 'career',     num: '03', act: 'ACT I · LOBBY',  label: '演艺/酒旅' },
-  { id: 'skills',     num: '04', act: 'THE LAB',        label: '能力图谱' },
-  { id: 'projects',   num: '05', act: 'SHOWCASE',       label: '重点案例' },
-  { id: 'social-ops', num: '06', act: 'SOCIAL OPS',     label: '社交实验' },
-  { id: 'contact',    num: '07', act: 'BACKSTAGE',      label: '联系我' },
+  { id: 'hero',       num: '01', act: 'PROLOGUE',       label: '首页' },
+  { id: 'sectors',    num: '02', act: 'CORE CAPABILITIES',    label: '核心能力' },
+  { id: 'projects', num: '03', act: 'FEATURED PROJECTS', label: '代表项目' },
+  { id: 'social-ops', num: '04', act: 'SOCIAL LAB', label: '新媒体' },
+  { id: 'career', num: '05', act: 'CAREER', label: '工作经历' },
+  { id: 'manifesto', num: '06', act: 'MANIFESTO', label: '个人理念' },
+  { id: 'tools', num: '07', act: 'ADDITIONAL PRACTICE', label: '其他实践' },
+  { id: 'contact',    num: '08', act: 'CONTACT',      label: '联系方式' },
 ] as const;
+
+const BOTTOM_IDS = ['hero', 'sectors', 'projects', 'career', 'contact'] as const;
 
 type NavId = typeof NAV_ITEMS[number]['id'];
 
@@ -25,7 +28,8 @@ function getSectionTops(): Record<NavId, number> {
 function getActive(tops: Record<NavId, number>): NavId {
   const scrollY = window.scrollY;
   const viewH = window.innerHeight;
-  const threshold = scrollY + viewH * 0.38;
+  if (scrollY + viewH >= document.documentElement.scrollHeight - 2) return "contact";
+  const threshold = scrollY + Math.min(120, viewH * 0.14);
 
   let current: NavId = NAV_ITEMS[0].id;
   for (const item of NAV_ITEMS) {
@@ -64,11 +68,14 @@ export function JourneyIndicator() {
       }, 1800);
     };
 
+    const observer = new ResizeObserver(refreshTops);
+    observer.observe(document.body);
     const onResize = () => refreshTops();
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onResize, { passive: true });
     return () => {
+      observer.disconnect();
       clearTimeout(t);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       window.removeEventListener('scroll', onScroll);
@@ -76,9 +83,32 @@ export function JourneyIndicator() {
     };
   }, [refreshTops, hovering]);
 
+  const navigation = useRef<AbortController | null>(null);
+  useEffect(() => () => navigation.current?.abort(), []);
+
   const scrollTo = (id: NavId) => {
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!el) return;
+    navigation.current?.abort();
+    const controller = new AbortController();
+    navigation.current = controller;
+    const options = { signal: controller.signal, passive: true };
+    const cancel = () => controller.abort();
+    for (const event of ['wheel', 'touchstart', 'keydown']) {
+      window.addEventListener(event, cancel, options);
+    }
+    const startingTop = el.getBoundingClientRect().top + window.scrollY;
+    const settle = () => {
+      controller.abort();
+      if (Math.abs(el.getBoundingClientRect().top + window.scrollY - startingTop) > 2) {
+        el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      }
+      refreshTops();
+    };
+    document.addEventListener('scrollend', settle, options);
+    const fallback = window.setTimeout(settle, 1200);
+    controller.signal.addEventListener('abort', () => clearTimeout(fallback), { once: true });
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const activeIndex = NAV_ITEMS.findIndex(n => n.id === activeId);
@@ -94,7 +124,7 @@ export function JourneyIndicator() {
     <>
       {/* ─── Desktop: vertical right rail ─── */}
       <motion.nav
-        className="fixed right-4 top-1/2 -translate-y-1/2 z-[96] hidden md:flex flex-col items-center"
+        className="fixed right-1 w-8 top-1/2 -translate-y-1/2 z-[96] hidden md:flex flex-col items-center"
         style={{ opacity, height: totalHeight }}
         animate={{ opacity }}
         transition={{ duration: 0.6 }}
@@ -114,7 +144,7 @@ export function JourneyIndicator() {
 
         {/* Amber sliding cursor */}
         <motion.div
-          className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full z-10"
+          className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full z-10 pointer-events-none"
           style={{
             top: LINE_TOP_PX - 5,
             background: '#e6a157',
@@ -130,10 +160,10 @@ export function JourneyIndicator() {
           return (
             <motion.button
               key={item.id}
-              onClick={() => scrollTo(item.id)}
-              className="absolute flex items-center group focus:outline-none"
+              aria-current={isActive ? "location" : undefined} onClick={() => scrollTo(item.id)}
+              className="absolute flex items-center justify-center w-8 h-8 -mt-4 group focus-visible:outline-primary"
               style={{ top: LINE_TOP_PX + i * NODE_GAP_PX, left: '50%', transform: 'translateX(-50%)' }}
-              whileHover={{ x: -5 }}
+
               transition={{ type: 'spring', stiffness: 350, damping: 28 }}
               aria-label={`Go to ${item.act}`}
             >
@@ -173,7 +203,7 @@ export function JourneyIndicator() {
       </motion.nav>
 
       {/* ─── Mobile: bottom horizontal bar ─── */}
-      <nav
+      <nav aria-label="章节导航"
         className="fixed bottom-0 left-0 right-0 z-[96] md:hidden"
         style={{
           background: 'rgba(12,10,7,0.88)',
@@ -181,35 +211,15 @@ export function JourneyIndicator() {
           borderTop: '1px solid rgba(230,161,87,0.15)',
         }}
       >
-        <div className="flex overflow-x-auto scrollbar-hide">
-          {NAV_ITEMS.map((item) => {
-            const isActive = item.id === activeId;
+        <div className="flex items-center justify-center gap-[clamp(2px,1.7vw,12px)] pb-[env(safe-area-inset-bottom)]">
+          {BOTTOM_IDS.map(id => {
+            const item = NAV_ITEMS.find(section => section.id === id)!;
+            const active = activeId === id;
             return (
-              <button
-                key={item.id}
-                onClick={() => scrollTo(item.id)}
-                className="flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-2 focus:outline-none transition-all duration-300"
-                style={{ minWidth: '4.5rem' }}
-              >
-                <span
-                  className="font-mono text-[7px] tracking-[0.22em]"
-                  style={{ color: isActive ? 'rgba(230,161,87,0.9)' : 'rgba(245,240,232,0.3)' }}
-                >
-                  {item.num}
-                </span>
-                <span
-                  className="font-mono text-[8px] tracking-wide"
-                  style={{ color: isActive ? 'rgba(230,161,87,0.75)' : 'rgba(245,240,232,0.22)' }}
-                >
-                  {item.label}
-                </span>
-                {isActive && (
-                  <motion.div
-                    layoutId="mobile-indicator"
-                    className="w-4 h-px rounded-full"
-                    style={{ background: '#e6a157', boxShadow: '0 0 4px rgba(230,161,87,0.7)' }}
-                  />
-                )}
+              <button key={id} aria-current={active ? 'location' : undefined}
+                onClick={() => scrollTo(id)}
+                className="min-h-11 min-w-11 px-1.5 text-[11px] tracking-wide whitespace-nowrap text-[#b5a89a] aria-[current=location]:text-[#efd6b4] focus-visible:outline-primary">
+                {item.label}
               </button>
             );
           })}

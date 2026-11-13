@@ -1,26 +1,52 @@
-import { useState, MouseEvent } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { featuredProjects, type ProjectCase, type ProjectBattle } from '@/lib/portfolioData';
-import { X, ArrowUpRight } from 'lucide-react';
+import { useState, MouseEvent, useEffect, Fragment, type ReactNode } from 'react';
+import { motion } from 'framer-motion';
+import rawProjects from '@/lib/p0Projects.json';
+import { featuredProjects as archive } from '@/lib/portfolioData';
+import changyingPress from "@assets/（三）新空间开业操盘_·_业态矩阵进化佐证：常营爱乐汇开业发布_1777460275826.jpg";
+import wukesongPress from "@assets/（三）新空间开业操盘_·_业态矩阵进化佐证：五棵松爱乐汇开业发布截图1_1777460275829.jpg";
+import { ReadingDialog } from './ReadingDialog';
+import { ArrowUpRight, X } from 'lucide-react';
 
-function ProjectCard({
-  project,
-  index,
-  onOpen,
-}: {
-  project: ProjectCase;
-  index: number;
-  onOpen: () => void;
-}) {
+type MediaImage = { src: string; caption: string; orientation: string; fit?: string };
+type MediaGroup = { anchor: string; title: string; layout: string; images: MediaImage[] };
+type Action = { no: string; title: string; detail: string; part: string };
+type Result = { label: string; text: string };
+type Destination = { name: string; status: string; statusNote: string; detail: string };
+type ProjectCase = {
+  id: string; no: string; title: string; tags: string[]; date: string; image: string;
+  coverPosition?: string;
+  tagline: string; role: string; summary: string[]; judgment: string[];
+  keyResults: { value: string; label: string }[]; keyResultsNote: string;
+  actions: Action[]; results: Result[]; review: string[]; dataNotes: string[];
+  destinations: Destination[]; media: MediaGroup[]; hideResults?: boolean; hideStatus?: boolean;
+};
+
+const cardSummaries: Record<string, string> = {
+  '01': '以原创独立音乐IP建立空间内容特色，探索系列演出、音乐人合作与持续运营机制。',
+  '02': '针对两种空间形态与客群场景，制定差异化开业策略，整合演出内容与品牌传播资源。',
+  '03': '从内容运营、达人合作到票务直播，建立传播与销售协同的营销机制。',
+  '04': '结合目的地文化与酒店定位，开发在地体验活动及可持续运营的内容产品。',
+};
+
+const projects = rawProjects as unknown as ProjectCase[];
+
+// 保留原有素材：两张开业报道截图、五棵松乐团合影（沿用旧案例图，不新增文件）
+// 注：原 AI 生成的空间内景图已从页面展示移除，源文件仍保留在 src/assets/
+const orchestraGroup = archive.find(p => p.id === 'case-3')?.image ?? '';
+const assetMap: Record<string, string> = {
+  'asset:orchestraGroup': orchestraGroup,
+  'asset:changyingPress': changyingPress,
+  'asset:wukesongPress': wukesongPress,
+};
+const resolveSrc = (src: string) => assetMap[src] ?? src;
+
+function ProjectCard({ project, index, onOpen }: { project: ProjectCase; index: number; onOpen: () => void }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   const onMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: -y * 4, y: x * 4 });
+    setTilt({ x: -((e.clientY - rect.top) / rect.height - 0.5) * 4, y: ((e.clientX - rect.left) / rect.width - 0.5) * 4 });
   };
-
   const reset = () => setTilt({ x: 0, y: 0 });
 
   return (
@@ -31,350 +57,197 @@ function ProjectCard({
       transition={{ duration: 0.8, delay: index * 0.09, ease: [0.22, 1, 0.36, 1] }}
       onMouseMove={onMouseMove}
       onMouseLeave={reset}
+      role="button" tabIndex={0}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
       onClick={onOpen}
       className="group relative cursor-pointer rounded-2xl overflow-hidden border border-border/70 bg-card transition-all duration-500 hover:border-primary/60 hover:shadow-[0_25px_80px_-20px_rgba(230,161,87,0.35)] flex flex-col"
-      style={{
-        transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-        transition: 'transform 250ms ease-out, border-color 400ms, box-shadow 600ms',
-      }}
+      style={{ transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`, transition: 'transform 250ms ease-out, border-color 400ms, box-shadow 600ms' }}
     >
-      {/* image area */}
       <div className="relative overflow-hidden aspect-[5/3]">
-        <div
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-[1.6s] ease-out group-hover:scale-[1.08]"
-          style={{ backgroundImage: `url(${project.image})` }}
-        />
+        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-[1.6s] ease-out group-hover:scale-[1.08]"
+          style={{ backgroundImage: `url(${resolveSrc(project.image)})`, backgroundPosition: project.coverPosition ?? 'center' }} />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 mix-blend-overlay opacity-60 group-hover:opacity-90 transition-opacity duration-700" />
-        <div
-          className="absolute inset-0 opacity-[0.18] mix-blend-overlay pointer-events-none"
-          style={{
-            backgroundImage:
-              'url("data:image/svg+xml;utf8,<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"160\\" height=\\"160\\"><filter id=\\"n\\"><feTurbulence type=\\"fractalNoise\\" baseFrequency=\\"0.85\\" numOctaves=\\"2\\"/></filter><rect width=\\"100%\\" height=\\"100%\\" filter=\\"url(%23n)\\" opacity=\\"0.7\\"/></svg>")',
-          }}
-        />
+        <div className="absolute inset-0 opacity-[0.18] mix-blend-overlay pointer-events-none"
+          style={{ backgroundImage: 'url("data:image/svg+xml;utf8,<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"160\\" height=\\"160\\"><filter id=\\"n\\"><feTurbulence type=\\"fractalNoise\\" baseFrequency=\\"0.85\\" numOctaves=\\"2\\"/></filter><rect width=\\"100%\\" height=\\"100%\\" filter=\\"url(%23n)\\" opacity=\\"0.7\\"/></svg>")' }} />
 
-        {/* combined badge */}
-        {project.isCombined && (
-          <div className="absolute top-5 left-1/2 -translate-x-1/2 z-10 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 backdrop-blur-md border border-primary/50">
-            <span className="text-[9px] font-mono tracking-[0.22em] text-primary uppercase">
-              双战役 · Timeline
-            </span>
-          </div>
-        )}
-
-        {/* index plate */}
         <div className="absolute top-5 left-5 z-10 inline-flex items-center gap-3 px-3 py-1.5 rounded-full bg-background/70 backdrop-blur-md border border-border/60">
-          <span className="font-mono text-[10px] tracking-[0.22em] text-primary">
-            № {String(index + 1).padStart(2, '0')}
-          </span>
+          <span className="font-mono text-[10px] tracking-[0.22em] text-primary">№ {project.no}</span>
           <span className="w-1 h-1 rounded-full bg-primary/60" />
-          <span className="font-mono text-[10px] tracking-[0.18em] text-muted-foreground uppercase">
-            Case Study
-          </span>
+          <span className="font-mono text-[10px] tracking-[0.18em] text-muted-foreground uppercase">Case Study</span>
         </div>
-
-        {/* arrow */}
         <div className="absolute top-5 right-5 z-10 w-10 h-10 rounded-full bg-background/60 backdrop-blur-md border border-border/60 flex items-center justify-center transition-all duration-500 group-hover:bg-primary/90 group-hover:border-primary group-hover:rotate-45">
           <ArrowUpRight className="w-4 h-4 text-foreground/80 group-hover:text-background transition-colors" />
         </div>
-
-        {/* tag chips */}
         <div className="absolute bottom-5 left-5 right-5 z-10 flex flex-wrap gap-1.5">
-          {project.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-background/65 backdrop-blur-sm border border-border/50 text-foreground/85"
-            >
-              {tag}
-            </span>
+          {project.tags.map(tag => (
+            <span key={tag} className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-background/65 backdrop-blur-sm border border-border/50 text-foreground/85">{tag}</span>
           ))}
         </div>
       </div>
 
-      {/* content area */}
-      <div className="relative p-6 md:p-8 flex flex-col flex-1">
-        <h3 className="font-serif text-xl md:text-[26px] leading-tight text-foreground group-hover:text-primary transition-colors duration-500 tracking-tight">
+      <div className="relative p-5 md:p-6 flex flex-col flex-1">
+        <h3 className="font-serif text-xl md:text-[22px] text-balance leading-tight text-foreground group-hover:text-primary transition-colors duration-500 tracking-tight">
           {project.title}
         </h3>
-
         <div className="mt-5 pt-5 border-t border-dashed border-border/60">
-          <p className="text-[10px] tracking-[0.22em] text-muted-foreground/70 uppercase font-mono mb-2">
-            Key Outcome
-          </p>
-          <p className="text-foreground/95 font-medium text-[15px] leading-relaxed">
-            {project.keyData}
-          </p>
+          <p className="text-[10px] tracking-[0.22em] text-muted-foreground/70 uppercase font-mono mb-2">项目时间</p>
+          <p className="text-foreground/95 font-medium text-[15px] leading-relaxed">{project.date}</p>
         </div>
-
-        <div className="mt-auto pt-6 flex items-center gap-3 text-[11px] tracking-[0.18em] uppercase font-mono text-muted-foreground group-hover:text-primary transition-all duration-300 group-hover:drop-shadow-[0_0_8px_rgba(230,161,87,0.6)]">
-          <span>{project.isCombined ? 'View Timeline' : 'Read Full Case'}</span>
-          <span className="flex-1 h-px bg-border group-hover:bg-primary/60 transition-colors" />
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{cardSummaries[project.no]}</p>
+        <div className="mt-auto pt-6 flex items-center gap-3 text-[11px] tracking-[0.18em] uppercase font-mono text-muted-foreground group-hover:text-primary transition-all duration-300">
+          <span>阅读项目</span><span className="flex-1 h-px bg-border group-hover:bg-primary/60 transition-colors" />
         </div>
       </div>
     </motion.article>
   );
 }
 
-/* ── STAR block (shared) ── */
-function StarBlock({ star }: { star: ProjectBattle['star'] | ProjectCase['star'] }) {
-  return (
-    <div className="space-y-8 text-muted-foreground">
-      {(['s', 't', 'a', 'r'] as const).map((k) => {
-        const labels = {
-          s: { letter: 'S', en: 'Situation', cn: '场景' },
-          t: { letter: 'T', en: 'Task', cn: '任务' },
-          a: { letter: 'A', en: 'Action', cn: '行动' },
-          r: { letter: 'R', en: 'Result', cn: '结果' },
-        } as const;
-        const meta = labels[k];
-        return (
-          <div key={k}>
-            <h4 className="text-primary font-bold mb-3 flex items-center gap-3">
-              <span className="w-8 h-8 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center text-sm font-mono flex-shrink-0">
-                {meta.letter}
-              </span>
-              <span className="font-serif text-lg">{meta.en}</span>
-              <span className="text-muted-foreground text-sm font-normal">{meta.cn}</span>
-            </h4>
-            <p className={`leading-relaxed whitespace-pre-line pl-11 ${k === 'r' ? 'text-foreground/95 font-medium' : ''}`}>
-              {star[k]}
-            </p>
-          </div>
-        );
-      })}
+function Section({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
+  return <section className={`p0-section ${className}`}>
+    <h3 className="p0-section-title">{title}</h3>
+    {children}
+  </section>;
+}
+
+function MediaBlock({ group, onZoom }: { group: MediaGroup; onZoom: (img: MediaImage) => void }) {
+  return <div className="p0-media">
+    {group.title && <p className="p0-media-title">{group.title}</p>}
+    <div className="p0-media-grid" data-layout={group.layout}>
+      {group.images.map(img => (
+        <figure key={img.src} className="p0-figure" data-orientation={img.orientation} data-fit={img.fit}>
+          <button type="button" onClick={() => onZoom(img)} aria-label={'放大查看：' + img.caption}>
+            <img src={resolveSrc(img.src)} alt={img.caption} loading="lazy" />
+          </button>
+          <figcaption>{img.caption}</figcaption>
+        </figure>
+      ))}
     </div>
-  );
+  </div>;
 }
 
-/* ── Combined battle timeline in the drawer ── */
-function CombinedModal({ project }: { project: ProjectCase }) {
-  const [activeBattle, setActiveBattle] = useState<number | null>(null);
-
-  return (
-    <>
-      {/* header image */}
-      <div className="relative h-56 md:h-72 overflow-hidden flex-shrink-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${project.image})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
-      </div>
-
-      <div className="p-8 md:p-12 -mt-10 relative">
-        {/* tags */}
-        <div className="flex flex-wrap gap-2 mb-5">
-          {project.tags.map((tag) => (
-            <span key={tag} className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-secondary/15 text-secondary border border-secondary/20">
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-4 leading-tight tracking-tight">
-          {project.title}
-        </h2>
-
-        <div className="pb-6 border-b border-border/50 space-y-4">
-          <div>
-            <p className="text-[10px] tracking-[0.22em] text-muted-foreground/70 font-mono uppercase mb-1.5">
-              Project Brief · 项目介绍
-            </p>
-            <p className="text-foreground/90 text-sm md:text-base leading-relaxed">{project.intro}</p>
-          </div>
-          <div>
-            <p className="text-[10px] tracking-[0.22em] text-muted-foreground/70 font-mono uppercase mb-1.5">
-              My Role · 核心定位
-            </p>
-            <p className="text-secondary font-medium text-sm md:text-base leading-relaxed">{project.role}</p>
-          </div>
-        </div>
-
-        <div className="mt-6 mb-8 p-5 rounded-xl bg-primary/5 border border-primary/20">
-          <p className="text-[10px] tracking-[0.22em] text-primary/80 font-mono uppercase mb-2">Combined Outcome</p>
-          <p className="text-foreground font-semibold tracking-wide">{project.keyData}</p>
-        </div>
-
-        {/* Timeline */}
-        <div className="space-y-0">
-          <p className="text-[10px] tracking-[0.32em] text-primary/80 font-mono uppercase mb-6">
-            Timeline · 双战役
-          </p>
-
-          {(project.battles ?? []).map((battle, idx) => (
-            <div key={battle.date} className="relative pl-8 pb-10 last:pb-0">
-              {/* vertical line */}
-              {idx < (project.battles ?? []).length - 1 && (
-                <div className="absolute left-3 top-5 bottom-0 w-px bg-primary/20" />
-              )}
-              {/* dot */}
-              <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-primary/15 border border-primary/50 flex items-center justify-center">
-                <span className="w-2 h-2 rounded-full bg-primary" />
-              </div>
-
-              {/* date badge */}
-              <div className="mb-3">
-                <span className="inline-block font-mono text-[11px] tracking-[0.18em] text-primary bg-primary/10 border border-primary/25 px-3 py-1 rounded-full">
-                  {battle.date}
-                </span>
-              </div>
-
-              {/* battle thumbnail / photo strip */}
-              {battle.images && battle.images.length > 1 ? (
-                <div className="w-full mb-4 overflow-x-auto scrollbar-hide">
-                  <div className="flex gap-2 w-max">
-                    {battle.images.map((src, pi) => (
-                      <img
-                        key={pi}
-                        src={src}
-                        alt={`${battle.title} 图 ${pi + 1}`}
-                        className="flex-shrink-0 rounded-xl border border-border/60 object-cover"
-                        style={{ width: 180, height: 128, objectFit: 'cover', borderRadius: 12 }}
-                      />
-                    ))}
-                  </div>
-                  <style>{`.scrollbar-hide::-webkit-scrollbar{display:none}.scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}`}</style>
-                </div>
-              ) : (
-                <div
-                  className="w-full h-32 rounded-xl overflow-hidden mb-4 border border-border/50"
-                  style={{ backgroundImage: `url(${battle.image})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 12 }}
-                />
-              )}
-
-              <h3 className="font-serif text-lg text-foreground font-bold mb-2 leading-tight">
-                {battle.title}
-              </h3>
-
-              {/* tags */}
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {battle.tags.map((t) => (
-                  <span key={t} className="text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-background border border-border/50 text-muted-foreground">
-                    {t}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mb-4 p-3.5 rounded-lg bg-primary/5 border border-primary/15">
-                <p className="text-[9px] tracking-[0.22em] text-primary/70 font-mono uppercase mb-1">Key Data</p>
-                <p className="text-foreground/90 text-sm font-medium">{battle.keyData}</p>
-              </div>
-
-              {/* expand/collapse STAR */}
-              <button
-                onClick={() => setActiveBattle(activeBattle === idx ? null : idx)}
-                className="flex items-center gap-2 text-[11px] font-mono tracking-[0.18em] uppercase text-muted-foreground hover:text-primary transition-colors mb-4"
-              >
-                <span>{activeBattle === idx ? '▲ 收起' : '▼ 展开 STAR 复盘'}</span>
-              </button>
-
-              <AnimatePresence>
-                {activeBattle === idx && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    className="overflow-hidden"
-                  >
-                    <div className="pt-2 pb-4">
-                      <StarBlock star={battle.star} />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
-  );
+function groupActions(actions: Action[]) {
+  const groups: { label: string; items: Action[] }[] = [];
+  for (const action of actions) {
+    const label = action.part || '';
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) last.items.push(action);
+    else groups.push({ label, items: [action] });
+  }
+  return groups;
 }
 
-/* ── Normal STAR modal ── */
-function NormalModal({ project }: { project: ProjectCase }) {
-  return (
-    <>
-      <div className="relative h-56 md:h-72 overflow-hidden flex-shrink-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${project.image})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+function ProjectDetail({ project, onZoom }: { project: ProjectCase; onZoom: (img: MediaImage) => void }) {
+  const mediaFor = (anchor: string) => project.media.filter(group => group.anchor === anchor);
+
+  return <div className="p0-detail">
+    {/* 首屏：名称 / 定位 / 职责 / 关键成果 */}
+    <header className="p0-hero">
+      <div className="p0-hero-meta">
+        <span className="font-mono tracking-[0.22em] text-primary">№ {project.no}</span>
+        <span className="font-mono tracking-[0.18em] text-muted-foreground">{project.date}</span>
+      </div>
+      <h2 className="p0-hero-title">{project.title}</h2>
+      <div className="p0-hero-tags">
+        {project.tags.map(tag => <span key={tag}>{tag}</span>)}
+      </div>
+      <p className="p0-hero-tagline">{project.tagline}</p>
+
+      <div className="p0-role">
+        <span className="p0-role-label">我的职责</span>
+        <p>{project.role}</p>
       </div>
 
-      <div className="p-8 md:p-12 -mt-10 relative">
-        <div className="flex flex-wrap gap-2 mb-5">
-          {project.tags.map((tag) => (
-            <span key={tag} className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-secondary/15 text-secondary border border-secondary/20">
-              {tag}
-            </span>
-          ))}
+      {project.keyResults.length > 0 && <>
+        <div className="p0-keyresults">
+          {project.keyResults.map(k => <div key={k.value}>
+            <strong>{k.value}</strong><span>{k.label}</span>
+          </div>)}
         </div>
+        {project.keyResultsNote && <p className="p0-inline-note">{project.keyResultsNote}</p>}
+      </>}
+      {project.keyResults.length === 0 && !project.hideStatus && <div className="p0-highlights">
+        <span className="p0-role-label">关键成果</span>
+        <div>{project.results.map(r => <span key={r.label} className="p0-highlight-chip">{r.label}</span>)}</div>
+      </div>}
+    </header>
 
-        <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-4 leading-tight tracking-tight">
-          {project.title}
-        </h2>
+    <Section title="项目速览">
+      {project.summary.map((line, i) => <p key={i} className="p0-para">{line}</p>)}
+      {mediaFor('summary').map(g => <MediaBlock key={g.anchor + g.title} group={g} onZoom={onZoom} />)}
+    </Section>
 
-        <div className="pb-6 border-b border-border/50 space-y-4">
-          <div>
-            <p className="text-[10px] tracking-[0.22em] text-muted-foreground/70 font-mono uppercase mb-1.5">
-              Project Brief · 项目介绍
-            </p>
-            <p className="text-foreground/90 text-sm md:text-base leading-relaxed">{project.intro}</p>
-          </div>
-          <div>
-            <p className="text-[10px] tracking-[0.22em] text-muted-foreground/70 font-mono uppercase mb-1.5">
-              My Role · 核心定位
-            </p>
-            <p className="text-secondary font-medium text-sm md:text-base leading-relaxed">{project.role}</p>
-          </div>
-        </div>
+    <Section title="策略判断">
+      {project.judgment.map((line, i) => <p key={i} className={i === 0 ? 'p0-judgment-lead' : 'p0-para'}>{line}</p>)}
+    </Section>
 
-        <div className="mt-6 mb-8 p-5 rounded-xl bg-primary/5 border border-primary/20">
-          <p className="text-[10px] tracking-[0.22em] text-primary/80 font-mono uppercase mb-2">Key Outcome</p>
-          <p className="text-foreground font-semibold tracking-wide">{project.keyData}</p>
-        </div>
-
-        <StarBlock star={project.star} />
-
-        {project.detailImages && project.detailImages.length > 0 && (
-          <div className="mt-10 pt-8 border-t border-border/40">
-            <p className="text-[10px] font-mono tracking-[0.28em] uppercase mb-4"
-              style={{ color: 'rgba(230,161,87,0.65)' }}>
-              佐证图片 · Reference Material
-            </p>
-            <div className={`grid gap-5 ${project.detailImages.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-              {project.detailImages.map((src, i) => (
-                <div
-                  key={i}
-                  className="overflow-hidden"
-                  style={{
-                    borderRadius: '14px',
-                    border: '1.5px solid rgba(230,161,87,0.32)',
-                    boxShadow: '0 6px 28px rgba(12,10,7,0.45), inset 0 1px 0 rgba(230,161,87,0.10)',
-                    background: 'rgba(26,20,16,0.60)',
-                  }}
-                >
-                  <img
-                    src={src}
-                    alt={`佐证图 ${i + 1}`}
-                    className="w-full object-contain"
-                    style={{ display: 'block' }}
-                  />
-                </div>
-              ))}
+    <Section title="关键行动">
+      {groupActions(project.actions).map((group, gi) => <div key={gi} className="p0-action-group">
+        {group.label && <h4 className="p0-action-group-title">{group.label}</h4>}
+        {group.items.map(action => <Fragment key={action.no}>
+          <div className="p0-action">
+            <span className="p0-action-no">{action.no}</span>
+            <div>
+              <strong>{action.title}</strong>
+              {action.detail && <p>{action.detail}</p>}
             </div>
           </div>
-        )}
+          {mediaFor('action:' + action.no).map(g => <MediaBlock key={g.anchor + g.title} group={g} onZoom={onZoom} />)}
+        </Fragment>)}
+      </div>)}
+    </Section>
+
+    {project.destinations.length > 0 && <Section title={project.hideStatus ? '目的地内容' : '目的地内容与项目状态'}>
+      <div className="p0-dest-list">
+        {project.destinations.map(dest => <Fragment key={dest.name}>
+          <article className="p0-dest">
+            <div className="p0-dest-head">
+              <h4>{dest.name}</h4>
+              {!project.hideStatus && <span className="p0-status">{dest.status}</span>}
+            </div>
+            <p>{dest.detail}</p>
+            {!project.hideStatus && <p className="p0-status-note">{dest.statusNote}</p>}
+          </article>
+          {mediaFor('destination:' + dest.name).map(g => <MediaBlock key={g.anchor + g.title} group={g} onZoom={onZoom} />)}
+        </Fragment>)}
       </div>
-    </>
-  );
+    </Section>}
+
+    {!project.hideResults && <Section title="项目成果">
+      <div className="p0-results">
+        {project.results.map(r => <div key={r.label} className="p0-result">
+          <strong>{r.label}</strong><p>{r.text}</p>
+        </div>)}
+      </div>
+    </Section>}
+
+    {project.review.length > 0 && <Section title="项目复盘" className="p0-review">
+      {project.review.map((line, i) => <p key={i} className="p0-para">{line}</p>)}
+    </Section>}
+
+    {project.dataNotes.length > 0 && <Section title="数据口径说明" className="p0-notes">
+      {project.dataNotes.map((line, i) => <p key={i} className="p0-para">{line}</p>)}
+    </Section>}
+  </div>;
 }
 
 export function FeaturedProjects() {
   const [selectedProject, setSelectedProject] = useState<ProjectCase | null>(null);
+  const [zoom, setZoom] = useState<MediaImage | null>(null);
+  const [zoomLarge, setZoomLarge] = useState(false);
+
+  useEffect(() => { if (!zoom) setZoomLarge(false); }, [zoom]);
+
+  useEffect(() => {
+    if (!zoom) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setZoom(null); }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [zoom]);
+
+  const close = () => { setZoom(null); setSelectedProject(null); };
 
   return (
     <section className="py-24" id="projects">
@@ -387,63 +260,37 @@ export function FeaturedProjects() {
         >
           <div>
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground tracking-tight">
-              重点项目深挖 <span className="text-primary">Featured Projects</span>
+              代表项目 <span className="text-primary">Featured Projects</span>
             </h2>
             <p className="mt-4 text-muted-foreground max-w-md">
-              点击任一卡片，展开 STAR 结构的全案复盘。
+              四个代表项目，记录从品牌定位、内容开发到营销传播与体验落地的不同实践。
             </p>
           </div>
           <div className="hidden md:block font-mono text-[11px] tracking-[0.22em] uppercase text-muted-foreground/70">
-            Six Cases · 2023 — 2026
+            Four Cases · 2023 — 2026
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          {featuredProjects.map((project, index) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              index={index}
-              onOpen={() => setSelectedProject(project)}
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+          {projects.map((project, index) => (
+            <ProjectCard key={project.id} project={project} index={index} onOpen={() => setSelectedProject(project)} />
           ))}
         </div>
       </div>
 
-      <AnimatePresence>
-        {selectedProject && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedProject(null)}
-              className="fixed inset-0 bg-background/85 backdrop-blur-md z-50"
-            />
-            <motion.div
-              initial={{ x: '100%', opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: '100%', opacity: 0 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-              className="fixed top-0 right-0 bottom-0 w-full max-w-2xl bg-card border-l border-border z-50 overflow-y-auto shadow-2xl flex flex-col"
-            >
-              {/* close button (always visible) */}
-              <button
-                onClick={() => setSelectedProject(null)}
-                className="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-background/70 backdrop-blur-md border border-border/60 flex items-center justify-center hover:bg-primary/20 hover:border-primary transition-colors"
-              >
-                <X className="w-5 h-5 text-foreground" />
-              </button>
-
-              {selectedProject.isCombined ? (
-                <CombinedModal project={selectedProject} />
-              ) : (
-                <NormalModal project={selectedProject} />
-              )}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {selectedProject && <ReadingDialog drawer title={selectedProject.title} closeLabel="关闭项目" onClose={close}>
+        <ProjectDetail project={selectedProject} onZoom={setZoom} />
+        {zoom && <div className="p0-lightbox" data-large={zoomLarge ? 'true' : 'false'} onClick={() => setZoom(null)} role="dialog" aria-modal="true" aria-label={zoom.caption}>
+          <div className="p0-lightbox-tools" onClick={e => e.stopPropagation()}>
+            <button type="button" className="p0-lightbox-zoom" onClick={() => setZoomLarge(v => !v)}>{zoomLarge ? '适应窗口' : '放大看数据'}</button>
+            <button type="button" className="p0-lightbox-close" aria-label="关闭图片" onClick={() => setZoom(null)}><X size={20} /></button>
+          </div>
+          <div className="p0-lightbox-stage">
+            <img src={resolveSrc(zoom.src)} alt={zoom.caption} onClick={e => { e.stopPropagation(); setZoomLarge(v => !v); }} />
+          </div>
+          <p>{zoom.caption}</p>
+        </div>}
+      </ReadingDialog>}
     </section>
   );
 }

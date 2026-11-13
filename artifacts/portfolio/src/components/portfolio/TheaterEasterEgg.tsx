@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import theaterWork from '@assets/theater-work.jpg_1777523190866.JPG';
+import { X } from 'lucide-react';
 
 function TungstenBulbSVG({ lit }: { lit: boolean }) {
   const col = lit ? '#e6a157' : 'rgba(230,161,87,0.55)';
@@ -35,12 +35,43 @@ export function TheaterEasterEgg() {
   const [swinging, setSwinging] = useState(false);
   const swingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const lamp = useRef<HTMLButtonElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const scene = useRef<HTMLIFrameElement>(null);
+  const pullTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (pullTimer.current) clearTimeout(pullTimer.current);
+    if (swingTimerRef.current) clearTimeout(swingTimerRef.current);
+  }, []);
+  useEffect(() => {
+    const overlay = dialog.current;
+    if (!lit || !overlay) return;
+    const root = document.documentElement;
+    const prior = root.style.overflow;
+    root.style.overflow = 'hidden';
+    overlay.showModal();
+    function onStageMessage(event: MessageEvent) {
+      if (event.origin === location.origin && event.source === scene.current?.contentWindow &&
+          event.data === 'portfolio-stage:close') setLit(false);
+    }
+    window.addEventListener('message', onStageMessage);
+    return () => {
+      window.removeEventListener('message', onStageMessage);
+      overlay.close();
+      root.style.overflow = prior;
+      lamp.current?.focus({preventScroll: true});
+    };
+  }, [lit]);
+
   const handleClick = () => {
+    if (pullTimer.current || lit) return;
+    setSwinging(false);
     setPulling(true);
-    setTimeout(() => {
+    pullTimer.current = setTimeout(() => {
+      pullTimer.current = null;
       setPulling(false);
-      setLit(v => !v);
-    }, 360);
+      setLit(true);
+    }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 360);
   };
 
   const handleHover = () => {
@@ -82,11 +113,13 @@ export function TheaterEasterEgg() {
 
           {/* Tungsten Bulb button */}
           <button
+            ref={lamp} aria-expanded={lit} aria-haspopup="dialog"
+            onPointerDown={event => event.currentTarget.setPointerCapture(event.pointerId)}
             onClick={handleClick}
             onMouseEnter={handleHover}
             aria-label={lit ? '关灯' : '开灯 · 探索彩蛋'}
             className="relative flex flex-col items-center focus:outline-none group"
-            style={{ marginTop: '-1px' }}
+            style={{ marginTop: '-1px', touchAction: 'none', minWidth: 44, minHeight: 44 }}
           >
             <div className="group-hover:scale-110 active:scale-90 transition-transform duration-200">
               <TungstenBulbSVG lit={lit} />
@@ -109,83 +142,21 @@ export function TheaterEasterEgg() {
         </motion.div>
       </div>
 
-      {/* ── Background blur + dark scrim ── */}
-      <AnimatePresence>
-        {lit && (
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            className="fixed inset-0 z-[997] pointer-events-none"
-            style={{
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              background: 'rgba(12,10,7,0.70)',
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Spotlight cone ── */}
-      <AnimatePresence>
-        {lit && (
-          <motion.div
-            key="spotlight"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2 }}
-            className="fixed inset-0 z-[997] pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse 50% 60% at 50% 5%, rgba(230,161,87,0.22) 0%, transparent 70%)' }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Photo + caption ── */}
-      <div
-        className="fixed inset-0 z-[999] flex flex-col items-center justify-center px-4"
-        onClick={lit ? () => setLit(false) : undefined}
-        style={{
-          opacity: lit ? 1 : 0,
-          transition: 'opacity 1.4s ease-in-out',
-          pointerEvents: lit ? 'auto' : 'none',
-          cursor: lit ? 'pointer' : 'default',
-        }}
-      >
-        {/* Photo — original aspect ratio, no crop, white edges hidden via bg */}
-        <div
-          className="relative max-w-lg w-[90vw] md:w-[60vw] rounded-2xl overflow-hidden flex items-center justify-center"
-          style={{
-            background: 'transparent',
-            boxShadow: '0 0 60px rgba(230,161,87,0.40), 0 24px 72px rgba(12,10,7,0.65)',
-          }}
-        >
-          <img
-            src={theaterWork}
-            alt="剧场工作照"
-            className="block w-full h-auto rounded-2xl"
-            style={{
-              objectFit: 'contain',
-              filter: 'sepia(0.10) contrast(1.04) brightness(1.06) saturate(0.95)',
-              clipPath: 'inset(2% 2% 4% 2% round 1rem)',
-            }}
-          />
-        </div>
-
-        {/* Caption */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={lit ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-          transition={{ duration: 1, delay: 0.9 }}
-          className="mt-5 text-center select-none"
-        >
-          <p className="font-serif italic text-foreground/90 text-lg md:text-xl tracking-wide">Enjoy the show.</p>
-          <p className="mt-1 text-sm text-primary/80 font-mono tracking-[0.18em]">很高兴在幕后遇见你。</p>
-          <p className="mt-4 text-[10px] text-muted-foreground/45 font-mono tracking-widest uppercase">点击任意处关灯</p>
-        </motion.div>
-      </div>
+      {lit && (
+        <dialog ref={dialog} aria-label="纸艺剧场 × 文化城市"
+          onCancel={event => {event.preventDefault(); setLit(false)}}
+          className="fixed inset-0 m-0 h-full w-full max-h-none max-w-none overflow-hidden border-0 p-0"
+          style={{background: '#171110', color: '#e4c9a0'}}>
+          <button autoFocus onClick={() => setLit(false)}
+            className="absolute right-3 top-2 z-10 inline-flex min-h-11 items-center gap-2 rounded px-3 text-sm focus-visible:outline"
+            style={{background: '#171110'}}>
+            <X size={15} aria-hidden="true"/>返回作品集
+          </button>
+          <iframe ref={scene} title="文化城市剧场动画" tabIndex={-1}
+            src={`${import.meta.env.BASE_URL}stage-preview/index.html?lamp`}
+            className="block h-full w-full border-0" />
+        </dialog>
+      )}
     </>
   );
 }

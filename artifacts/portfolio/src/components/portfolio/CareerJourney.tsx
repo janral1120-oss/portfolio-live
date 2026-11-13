@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { careerJourney } from '@/lib/portfolioData';
 
+import roles from '@/lib/p0Career.json';
+const currentRoles = roles.map((role, i) => ({ ...careerJourney[1-i], ...role }));
 export function CareerJourney() {
   return (
     <section className="py-32 relative overflow-hidden" id="career">
@@ -11,7 +13,7 @@ export function CareerJourney() {
           viewport={{ once: true, margin: '-100px' }}
           className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4"
         >
-          职业脉络 <span className="text-primary">Career Journey</span>
+          工作经历 <span className="text-primary">Career Journey</span>
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 10 }}
@@ -20,7 +22,7 @@ export function CareerJourney() {
           transition={{ delay: 0.1 }}
           className="text-muted-foreground mb-14 max-w-xl"
         >
-          两段履历，一条线索 — 在现场打磨节奏感，在 AI 工具里加倍杠杆。
+          工作职责
         </motion.p>
 
         <div className="relative">
@@ -28,7 +30,7 @@ export function CareerJourney() {
           <div className="hidden md:block absolute top-[180px] left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent z-0" />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 relative z-10">
-            {careerJourney.map((node, index) => (
+            {currentRoles.map((node, index) => (
               <motion.article
                 key={node.id}
                 initial={{ opacity: 0, y: 40 }}
@@ -38,7 +40,7 @@ export function CareerJourney() {
                 className="group relative"
               >
                 {/* image frame */}
-                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border/60 bg-card">
+                <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border/60 bg-card">
                   <div
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-[1.4s] ease-out group-hover:scale-[1.06]"
                     style={{ backgroundImage: `url(${node.image})` }}
@@ -69,8 +71,8 @@ export function CareerJourney() {
                 </div>
 
                 {/* content */}
-                <div className="pt-10 md:pt-12">
-                  <h3 className="text-2xl md:text-3xl font-serif font-bold text-foreground tracking-tight">
+                <div className="pt-6 md:pt-8">
+                  <h3 className="text-xl md:text-2xl text-balance font-serif font-bold text-foreground tracking-tight">
                     {node.company}
                   </h3>
                   <h4 className="mt-2 text-secondary text-sm md:text-base font-medium tracking-wide">
@@ -89,7 +91,7 @@ export function CareerJourney() {
                       >
                         <span className="mt-2 w-6 h-px bg-primary/50 flex-shrink-0 group-hover/item:bg-primary group-hover/item:w-8 transition-all duration-300" />
                         <span className="group-hover/item:text-foreground/95 transition-colors">
-                          {highlight}
+                          <strong className="block">{highlight.title}</strong><span className="whitespace-pre-line">{highlight.body}</span>
                         </span>
                       </motion.li>
                     ))}
