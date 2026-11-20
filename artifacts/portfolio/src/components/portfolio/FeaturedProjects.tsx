@@ -58,6 +58,7 @@ function ProjectCard({ project, index, onOpen }: { project: ProjectCase; index: 
       onMouseMove={onMouseMove}
       onMouseLeave={reset}
       role="button" tabIndex={0}
+      aria-label={`查看项目详情：${project.title}`}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
       onClick={onOpen}
       className="group relative cursor-pointer rounded-2xl overflow-hidden border border-border/70 bg-card transition-all duration-500 hover:border-primary/60 hover:shadow-[0_25px_80px_-20px_rgba(230,161,87,0.35)] flex flex-col"
@@ -96,7 +97,7 @@ function ProjectCard({ project, index, onOpen }: { project: ProjectCase; index: 
         </div>
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{cardSummaries[project.no]}</p>
         <div className="mt-auto pt-6 flex items-center gap-3 text-[11px] tracking-[0.18em] uppercase font-mono text-muted-foreground group-hover:text-primary transition-all duration-300">
-          <span>阅读项目</span><span className="flex-1 h-px bg-border group-hover:bg-primary/60 transition-colors" />
+          <span>查看项目详情</span><span className="flex-1 h-px bg-border group-hover:bg-primary/60 transition-colors" />
         </div>
       </div>
     </motion.article>
